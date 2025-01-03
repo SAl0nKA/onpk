@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: frontend-ci-run
+spec:
+  pipelineRef:
+    name: frontend-ci
+  params:
+    - name: git-url
+      value: "https://github.com/SAl0nKA/onpk"
+    - name: git-revision
+      value: "main"
+    - name: docker-image-repo
+      value: "salonka/onpk-appfrontend"
+    - name: image-tag
+      value: "latest"
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  serviceAccountName: pipeline-sa

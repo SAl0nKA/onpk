@@ -1,0 +1,1 @@
+Stranku najdete na: http://{{ .Values.services.frontend.ingress.host }}

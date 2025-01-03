@@ -1,0 +1,24 @@
+{{- if .Values.services.frontend.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app: appfrontend
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+  rules:
+    - host: {{ .Values.services.frontend.ingress.host | quote }}
+      http:
+        paths:
+          {{- range .Values.services.frontend.ingress.paths }}
+          - path: {{ .path | quote }}
+            pathType: {{ .pathType | default "ImplementationSpecific" }}
+            backend:
+              service:
+                name: {{ $.Values.services.frontend.service.name | default "frontend" }}
+                port:
+                  number: {{ $.Values.services.frontend.service.port }}
+          {{- end }}
+{{- end }}

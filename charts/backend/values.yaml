@@ -1,0 +1,106 @@
+nameOverride: ""
+fullnameOverride: ""
+
+services:
+  backend:
+    replicaCount: 1
+    service:
+      port: 9080
+      type: ClusterIP
+    image:
+      repository: salonka/onpk-appbackend
+      pullPolicy: Always
+      tag: ""
+
+    env:
+      - name: MONGO_CONN_STR
+        value: "mongodb://mongodb:27017/maindb"
+      - name: MONGO_USERNAME
+        value: admin
+      - name: MONGO_PASSWORD
+        value: password
+      - name: MONGO_AUTH_SOURCE
+        value: platformsdb
+
+    ingress:
+      enabled: true
+      host: "back.niki.eu"
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: backend
+              port:
+                number: 9080
+
+
+mongodb:
+  #pridane kvoli kratkemu timeoutu ktory branil nasadeniu
+  livenessProbe:
+    exec:
+      command:
+        - /bitnami/scripts/ping-mongodb.sh
+    initialDelaySeconds: 60  # Increase from 30 to 60
+    periodSeconds: 30        # Default is 20
+    timeoutSeconds: 10       # Keep it at 10
+    failureThreshold: 6      # Default is 6
+
+  readinessProbe:
+    exec:
+      command:
+        - /bitnami/scripts/readiness-probe.sh
+    initialDelaySeconds: 30  # Increase from 5 to 30
+    periodSeconds: 20        # Default is 10
+    timeoutSeconds: 10       # Keep it at 10
+    failureThreshold: 6      # Default is 6
+    persistence:
+  enabled: false
+
+  service:
+    nameOverride: "mongodb"
+    type: ClusterIP
+
+  initdbScripts:
+    init_script.js: |
+      db = db.getSiblingDB("platformsdb");
+      db.createUser({
+        user: "admin",
+        pwd: "password",
+        roles:[{role: "readWrite" , db:"platformsdb"}]
+      });
+      db.createCollection("platforms");
+      db.platforms.insertMany(
+       [
+         {
+              "name": "openshift",
+              "codedetail": {
+                  "usecase": "Container platform",
+                  "rank": 12,
+                  "homepage": "https://openshift.com",
+                  "download": "https://developers.redhat.com/products/codeready-containers/overview",
+                  "votes": 0
+              }
+          },
+          {
+              "name": "kubernetes",
+              "codedetail": {
+                  "usecase": "Container orchestration platform",
+                  "rank": 38,
+                 "homepage": "https://kubernetes.com",
+                  "download": "https://kubernetes.io/docs/tasks/tools/install-minikube/",
+                  "votes": 0
+              }
+          },
+          {
+              "name": "rancher",
+              "codedetail": {
+                  "usecase": "Container platform management",
+                  "rank": 50,
+                  "homepage": "https://rancher.com/",
+                  "download": "https://github.com/rancher/rancher",
+                  "votes": 0
+              }
+          }
+        ]
+      );

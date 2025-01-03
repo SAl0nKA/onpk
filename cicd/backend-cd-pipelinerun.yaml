@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: backend-cd-run
+spec:
+  pipelineRef:
+    name: backend-cd
+  params:
+    - name: git-url
+      value: "https://github.com/SAl0nKA/onpk"
+    - name: git-revision
+      value: "main"
+    - name: release-name
+      value: "backend-app"
+    - name: namespace
+      value: "default"
+    - name: image-tag
+      value: "latest"
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  serviceAccountName: pipeline-sa

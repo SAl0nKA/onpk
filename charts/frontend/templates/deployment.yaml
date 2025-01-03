@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appfrontend
+  labels:
+    app: appfrontend
+spec:
+  replicas: {{ .Values.services.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: appfrontend
+  template:
+    metadata:
+      labels:
+        app: appfrontend
+    spec:
+      containers:
+        - name: appfrontend
+          image: {{ .Values.services.frontend.image.repository }}:{{ .Values.services.frontend.image.tag | default "latest" }}
+          imagePullPolicy: {{ .Values.services.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          {{- with .Values.services.frontend.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http

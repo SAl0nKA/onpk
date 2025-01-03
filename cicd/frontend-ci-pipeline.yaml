@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: frontend-ci
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: URL of the Git repository
+    - name: git-revision
+      type: string
+      description: Revision of the Git repository
+    - name: docker-image-repo
+      type: string
+      description: Docker image repository name
+    - name: image-tag
+      type: string
+      description: Tag for the Docker image
+  workspaces:
+    - name: source
+  tasks:
+    - name: fetch-source
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+    - name: build-and-push
+      taskRef:
+        name: buildah
+      runAfter:
+        - fetch-source
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: DOCKERFILE
+          value: src/zauni-zadanie-appfrontend-2024/Dockerfile
+        - name: IMAGE
+          value: "$(params.docker-image-repo):$(params.image-tag)"
+        - name: TLSVERIFY
+          value: "false"

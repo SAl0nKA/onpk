@@ -1,0 +1,27 @@
+nameOverride: ""
+fullnameOverride: ""
+
+services:
+  frontend:
+    replicaCount: 1
+    service:
+      port: 8080
+      type: ClusterIP
+    image:
+      repository: salonka/onpk-appfrontend
+      pullPolicy: Always
+      tag: ""
+    env:
+      - name: REACT_APP_APIHOSTPORT
+        value: "http://back.niki.eu:9080"
+    ingress:
+      enabled: true
+      host: "front.niki.eu"
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 8080

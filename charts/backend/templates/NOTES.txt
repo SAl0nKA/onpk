@@ -1,0 +1,1 @@
+Backend najdete na: http://{{ .Values.services.backend.ingress.host }}

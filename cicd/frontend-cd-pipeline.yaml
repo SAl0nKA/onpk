@@ -1,0 +1,54 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: frontend-cd
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: URL of the Git repository containing Helm chart
+    - name: git-revision
+      type: string
+      description: Revision of the Git repository
+    - name: release-name
+      type: string
+      description: Name of the Helm release
+    - name: namespace
+      type: string
+      description: Namespace where to deploy
+    - name: image-tag
+      type: string
+      description: Tag for the Docker image
+  workspaces:
+    - name: source
+  tasks:
+    - name: fetch-source
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+    - name: helm-upgrade
+      taskRef:
+        name: helm-upgrade-from-source
+      runAfter:
+        - fetch-source
+      workspaces:
+        - name: source
+          workspace: source
+      params:
+        - name: release-name
+          value: $(params.release-name)
+        - name: namespace
+          value: $(params.namespace)
+        - name: CHART_PATH
+          value: "charts/frontend"
+        - name: VALUES
+          value: |
+            image:
+              tag: $(params.image-tag)
